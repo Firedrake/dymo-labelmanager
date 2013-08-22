@@ -13,16 +13,13 @@ use constant ESC => "\x1b";
 use constant SYN => "\x16";
 
 my %device=(
-  class => 3,
-  vendor => 0x0922,
-  product => 0x1001,
   name => 'Dymo LabelManager PnP',
   maxbytesperline => 8, # 12mm tape
 );
 
 if ($o{d} eq '') {
   my @dp;
-  my $match=sprintf('^%04x:%04x:%04x.',$device{class},$device{vendor},$device{product});
+  my $match='^0003:0922:100[12]\.';
   find(sub{
          if (/$match/) {
            push @dp,$File::Find::name;
