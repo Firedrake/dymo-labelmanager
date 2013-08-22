@@ -1,0 +1,162 @@
+#! /usr/bin/perl -w
+
+use strict;
+use File::Find;
+use Imager;
+use Getopt::Std;
+
+my %o=(d => '');
+
+getopt('d',\%o);
+
+use constant ESC => "\x1b";
+use constant SYN => "\x16";
+
+my %device=(
+  class => 3,
+  vendor => 0x0922,
+  product => 0x1001,
+  name => 'Dymo LabelManager PnP',
+  maxbytesperline => 8, # 12mm tape
+);
+
+if ($o{d} eq '') {
+  my @dp;
+  my $match=sprintf('^%04x:%04x:%04x.',$device{class},$device{vendor},$device{product});
+  find(sub{
+         if (/$match/) {
+           push @dp,$File::Find::name;
+         }
+       },'/sys/bus/hid/devices');
+  if (@dp) {
+    my $p=$dp[0].'/hidraw';
+    opendir D,$p;
+    my @subs=grep /hidraw/,grep !/^\./,readdir D;
+    closedir D;
+    if (@subs) {
+      $p.="/$subs[0]/dev";
+      open D,'<',$p;
+      my @node;
+      while (<D>) {
+        if (/^(\d+):(\d+)$/) {
+          @node=($1,$2);
+        }
+      }
+      close D;
+      if (@node) {
+        my $d="/dev/char/$node[0]:$node[1]";
+        if (-e $d) {
+          $o{d}=$d;
+        } else {
+          my $nod=$node[0]*256+$node[1];
+          find(sub{
+                 if (-c $_ && (stat($_))[6] == $nod) {
+                   $o{d}=$File::Find::name;
+                 }
+               },'/dev/');
+        }
+      }
+    }
+  }
+}
+unless ($o{d}) {
+  die "Can't find a Dymo printer.\n";
+}
+unless ($o{d} =~ /^\/dev/) {
+  open O,'>',$o{d};
+  close O;
+}
+unless (-w $o{d}) {
+  die "You don't have permission to write to $o{d}\n";
+}
+my @cmd;
+my $bpl=-1;
+tapecolour(\@cmd,0);
+dottab(\@cmd,0);
+
+my $img=Imager->new(file => $ARGV[0] || '-');
+if ($img->getheight != 64) {
+  die "Image must be 64 pixels high\n";
+}
+$img=$img->rotate(right => 90);
+$img=$img->convert(preset => 'grey');
+foreach my $y (0..$img->getheight-1) {
+  my @outrow;
+  my $acc=0;
+  my $sft=0;
+  foreach my $pixel ($img->getscanline(y => $y,
+                                       type => '8bit')) {
+    my ($r,$g,$b,$a)=$pixel->rgba;
+    $acc <<= 1;
+    if ($r<128) {
+      $acc|=1;
+    }
+    $sft++;
+    if ($sft>7) {
+      push @outrow,chr($acc);
+      $acc=0;
+      $sft=0;
+    }
+  }
+  line(\@cmd,join('',@outrow));
+}
+
+blanklines(\@cmd,56);
+blanklines(\@cmd,56);
+getstatus(\@cmd);
+
+command($o{d},@cmd);
+
+sub tapecolour {
+  my $cmd=shift;
+  push @{$cmd},(ESC,'C',chr(shift));
+}
+
+sub dottab {
+  my $cmd=shift;
+  push @{$cmd},(ESC,'B',chr(shift));
+}
+
+sub bytesperline {
+  my $cmd=shift;
+  my $nbpl=shift;
+  if ($bpl == $nbpl) {
+    return
+  }
+  $bpl=$nbpl;
+  push @{$cmd},(ESC,'D',chr($bpl));
+}
+
+sub getstatus {
+  my $cmd=shift;
+  push @{$cmd},(ESC,'A');
+}
+
+sub blanklines {
+  my $cmd=shift;
+  bytesperline($cmd,0);
+  push @{$cmd},(SYN x shift);
+}
+
+sub line {
+  my $cmd=shift;
+  my $line=shift;
+  $line =~ s/\x00+$//;
+  if (length($line)>$device{maxbytesperline}) {
+    die "Line too long\n";
+  }
+  bytesperline($cmd,length($line));
+  push @{$cmd},(SYN,$line);
+}
+
+sub command {
+  my $dev=shift;
+  my $cmd=join('',@_);
+  open DEV,'+<',$dev or die "Can't open $dev\n";
+  binmode DEV;
+  print DEV $cmd;
+  my $resp;
+  read DEV,$resp,8;
+  close DEV;
+  return $resp;
+}

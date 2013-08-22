@@ -1,0 +1,41 @@
+txt2img and imgprint -- programs to drive a Dymo LabelManager PNP
+
+The Dymo LabelManager PNP is a very fine small tape printer,
+conveniently sized and priced for someone like me who has low-volume
+label-printing needs.
+
+Unfortunately, because it registers on USB as a HID rather than as a
+printer, the Dymo-supplied Linux drivers are of no use with it.
+
+However, the printing protocol is similar to that used on the larger
+LabelMaker printers, and writing a program to access it at low level
+isn't too hard.
+
+Sebastian Bronner came first with his dymoprint:
+http://sbronner.com/dymoprint/ which is a great starting point, but
+wasn't quite what I wanted: it can only produce lines of text in a
+single font. In the tradition of Unix programs, I wanted to split the
+functions: one program to convert text to bitmap, and another to send
+the bitmap to the printer. That way I could use an image editor to add
+barcodes, multiple fonts, and whatever other functions I wanted.
+
+Also I like Perl.
+
+And thus txt2img and imgprint.
+
+txt2img takes one or more lines of text and an optional font
+specifier, and produces a bitmap:
+
+$ txt2img -f /path/to/font.ttf "line one" "line two" "line three"
+
+By default it writes to txt2img.png; -o will change this. It scales
+the text to 64 pixels, this being the resolution of the LabelManager
+on 12mm tape.
+
+imgprint takes a 64-pixel-high image, crudely converts it to
+black-and-white if necessary, and outputs it to an attached
+LabelManager PNP. If it doesn't find one, it will fail with an error;
+you can use the -d option to specify a particular device (or even a
+plain file).
+
+$ imgprint txt2img.png

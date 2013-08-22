@@ -1,0 +1,62 @@
+#! /usr/bin/perl -w
+
+use strict;
+use Getopt::Std;
+use Imager;
+use List::Util qw(sum max);
+
+my %o=(
+  f => '/usr/share/fonts/truetype/ttf-liberation/LiberationSerif-Regular.ttf',
+  h => 64,
+  o => 'txt2img.png',
+);
+
+my $testsize=256;
+
+getopt('fho',\%o);
+my @lines=@ARGV;
+my @m;
+
+{
+  my $fn=Imager::Font->new(file => $o{f},
+                           size => $testsize);
+  foreach (@lines) {
+    my @metrics=$fn->bounding_box(string => $_);
+    push @m,$metrics[5]-$metrics[4];
+  }
+}
+
+my %col=(
+  white => Imager::Color->new(255,255,255),
+  black => Imager::Color->new(0,0,0)
+);
+my $targetsize=$testsize/sum(@m)*$o{h};
+
+my @i;
+my $fn=Imager::Font->new(file => $o{f},
+                         size => $targetsize);
+foreach (@lines) {
+  my @metrics=$fn->bounding_box(string => $_);
+  my $i=Imager->new(xsize => $metrics[2]-$metrics[0],
+                    ysize => $metrics[5]-$metrics[4]);
+  $i->box(color => $col{white}, filled => 1);
+  $i->string(align => 0,
+             x => 0,
+             y => 0,
+             string => $_,
+             color => $col{black},
+             font => $fn);
+  push @i,$i;
+}
+
+my $out=Imager->new(xsize => max(map {$_->getwidth} @i),
+                    ysize => $o{h});
+$out->box(color => $col{white},filled => 1);
+my $y=0;
+foreach (@i) {
+  $out->paste(left => ($out->getwidth-$_->getwidth)/2,
+              top => $y,
+              src => $_);
+  $y+=$_->getheight;
+}
+$out->write(file => $o{o});
