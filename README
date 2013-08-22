@@ -1,5 +1,10 @@
 txt2img and imgprint -- programs to drive a Dymo LabelManager PNP
 
+by Roger Bell_West (roger at firedrake.org)
+
+Updated versions of this software may be available from
+http://firedrake.org/cgi-bin/gitweb.cgi?p=dymo-labelmanager.git
+
 The Dymo LabelManager PNP is a very fine small tape printer,
 conveniently sized and priced for someone like me who has low-volume
 label-printing needs.
@@ -11,17 +16,19 @@ However, the printing protocol is similar to that used on the larger
 LabelMaker printers, and writing a program to access it at low level
 isn't too hard.
 
-Sebastian Bronner came first with his dymoprint:
+Sebastian Bronner got there first with his dymoprint:
 http://sbronner.com/dymoprint/ which is a great starting point, but
 wasn't quite what I wanted: it can only produce lines of text in a
 single font. In the tradition of Unix programs, I wanted to split the
 functions: one program to convert text to bitmap, and another to send
-the bitmap to the printer. That way I could use an image editor to add
-barcodes, multiple fonts, and whatever other functions I wanted.
+the bitmap to the printer. That way I could use an image editor in
+between to add barcodes, multiple fonts, and whatever other functions
+I wanted.
 
 Also I like Perl.
 
-And thus txt2img and imgprint.
+And thus txt2img and imgprint. Both of these programs will need the
+non-core Imager module (on Debian, apt-get install libimager-perl).
 
 txt2img takes one or more lines of text and an optional font
 specifier, and produces a bitmap:
@@ -39,3 +46,16 @@ you can use the -d option to specify a particular device (or even a
 plain file).
 
 $ imgprint txt2img.png
+
+If you get a permission error, add a file in /etc/udev/rules.d that
+reads:
+
+SUBSYSTEM=="hidraw",
+ACTION=="add",
+DEVPATH=="/devices/pci[0-9]*/usb[0-9]*/0003:0922:1001.*/hidraw/hidraw*"
+GROUP="plugdev"
+
+then turn the printer off and on again.
+
+Feature requests are welcome.
+
