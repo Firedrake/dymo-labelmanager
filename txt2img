@@ -8,12 +8,14 @@ use List::Util qw(sum max);
 my %o=(
   f => '/usr/share/fonts/truetype/ttf-liberation/LiberationSerif-Regular.ttf',
   h => 64,
+  a => 'c',
+  g => 0,
   o => 'txt2img.png',
 );
 
 my $testsize=256;
 
-getopt('fho',\%o);
+getopt('fhago',\%o);
 my @lines=@ARGV;
 my @m;
 
@@ -30,7 +32,7 @@ my %col=(
   white => Imager::Color->new(255,255,255),
   black => Imager::Color->new(0,0,0)
 );
-my $targetsize=$testsize/sum(@m)*$o{h};
+my $targetsize=$testsize/sum(@m)*($o{h}-((scalar @m)-1)*$o{g});
 
 my @i;
 my $fn=Imager::Font->new(file => $o{f},
@@ -54,9 +56,10 @@ my $out=Imager->new(xsize => max(map {$_->getwidth} @i),
 $out->box(color => $col{white},filled => 1);
 my $y=0;
 foreach (@i) {
-  $out->paste(left => ($out->getwidth-$_->getwidth)/2,
+  $out->paste(left => ($o{a} eq 'c')?($out->getwidth-$_->getwidth)/2:
+                     ($o{a} eq 'r')?($out->getwidth-$_->getwidth):0,
               top => $y,
               src => $_);
-  $y+=$_->getheight;
+  $y+=$_->getheight+$o{g};
 }
 $out->write(file => $o{o});
