@@ -7,7 +7,7 @@ use Getopt::Std;
 
 my %o=(d => '');
 
-getopt('d',\%o);
+getopts('d:s',\%o);
 
 use constant ESC => "\x1b";
 use constant SYN => "\x16";
@@ -99,7 +99,9 @@ foreach my $y (0..$img->getheight-1) {
 }
 
 blanklines(\@cmd,56);
-blanklines(\@cmd,56);
+unless ($o{s}) {
+  blanklines(\@cmd,56);
+}
 getstatus(\@cmd);
 
 command($o{d},@cmd);

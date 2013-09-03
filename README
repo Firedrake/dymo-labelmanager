@@ -50,6 +50,16 @@ LabelManager PNP. If it doesn't find one, it will fail with an error;
 you can use the -d option to specify a particular device (or even a
 plain file).
 
+Use the "-s" option to print a short label. This will advance the label
+past the cutter, but will not include the equal blank space after the
+cutter that forms the left margin of the next label to be printed. The
+next label printed will be right up at the leading edge of the tape. If
+you use this every time, the labels will come out as:
+
+[TEXT    ][TEXT    ] etc.
+
+which may be helpful if you plan to trim off the blank partss anyway.
+
 $ imgprint txt2img.png
 
 If you get a permission error, add a file in /etc/udev/rules.d that
