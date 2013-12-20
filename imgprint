@@ -96,6 +96,11 @@ foreach my $y (0..$img->getheight-1) {
     }
   }
   line(\@cmd,join('',@outrow));
+  if (scalar @cmd > 250) {
+    getstatus(\@cmd);
+    command($o{d},@cmd);
+    @cmd=();
+  }
 }
 
 blanklines(\@cmd,56);
