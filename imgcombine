@@ -1,0 +1,36 @@
+#! /usr/bin/perl -w
+
+use strict;
+use Imager;
+use Getopt::Std;
+
+my %o=(h => 64,
+       o => 'imgcombine.png');
+
+getopts('h:o:',\%o);
+
+my @images;
+my $offset=0;
+foreach my $file (@ARGV) {
+  my $img=Imager->new(file => $file);
+  if ($img->getheight != $o{h}) {
+    if ($img->getwidth == $o{h}) {
+      $img=$img->rotate(degrees => 270);
+    } else {
+      $img=$img->scale(ypixels => $o{h});
+    }
+  }
+  push @images,[$offset,$img];
+  $offset+=$img->getwidth;
+}
+
+my $out=Imager->new(xsize => $offset,
+                    ysize => $o{h});
+
+foreach (@images) {
+  $out->paste(left => $_->[0],
+              top => 0,
+              src => $_->[1]);
+}
+
+$out->write(file => $o{o});

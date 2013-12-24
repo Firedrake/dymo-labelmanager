@@ -30,6 +30,7 @@ Also I like Perl.
 And thus txt2img and imgprint. Both of these programs will need the
 non-core Imager module (on Debian, apt-get install libimager-perl).
 
+
 txt2img takes one or more lines of text and an optional font
 specifier, and produces a bitmap:
 
@@ -43,6 +44,16 @@ Multiple lines are centred by default; to change this, use "-a l" to
 align left or "-a r" to align right.
 
 To increase inter-line spacing, use "-g N" to specify a pixel gap of N.
+
+
+imgcombine takes several images and combines them into a single one;
+for example, you could have a text label from txt2img followed by a
+piece of clip-art. -o determines the output file (imgcombine.png by
+default). An image that is 64 pixels wide but not high will be
+rotated 90 degrees; otherwise it will be scaled to fit.
+
+$ imgcombine file1.png file2.png
+
 
 imgprint takes a 64-pixel-high image, crudely converts it to
 black-and-white if necessary, and outputs it to an attached
@@ -58,12 +69,13 @@ you use this every time, the labels will come out as:
 
 [TEXT    ][TEXT    ] etc.
 
-which may be helpful if you plan to trim off the blank partss anyway.
+which may be helpful if you plan to trim off the blank parts anyway.
 
 $ imgprint txt2img.png
 
-If you get a permission error, add a file in /etc/udev/rules.d that
-reads:
+
+If you get a permission error, add a file 50dymo.rules in
+/etc/udev/rules.d that reads:
 
 SUBSYSTEM=="hidraw",
 ACTION=="add",
