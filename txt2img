@@ -8,7 +8,7 @@ use List::Util qw(sum max);
 use feature 'unicode_strings';
 
 my %o=(
-  f => '/usr/share/fonts/truetype/ttf-liberation/LiberationSerif-Regular.ttf',
+  f => '/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf',
   h => 64,
   a => 'c',
   g => 0,
