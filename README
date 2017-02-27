@@ -79,10 +79,13 @@ If you get a permission error, add a file 50dymo.rules in
 
 SUBSYSTEM=="hidraw",
 ACTION=="add",
-DEVPATH=="/devices/pci[0-9]*/usb[0-9]*/0003:0922:1001.*/hidraw/hidraw*"
+ATTRS{idVendor}=="0922",
+ATTRS{idProduct}=="1001",
 GROUP="plugdev"
 
-then turn the printer off and on again.
+then, still as root,
+
+udevadm control --reload-rules && udevadm trigger
 
 Feature requests are welcome.
 
