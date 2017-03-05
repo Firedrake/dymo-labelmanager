@@ -25,8 +25,12 @@ my @m;
   my $fn=Imager::Font->new(file => $o{f},
                            size => $testsize);
   foreach (@lines) {
-    my @metrics=$fn->bounding_box(string => $_);
-    push @m,$metrics[5]-$metrics[4];
+    if (/\S/) {
+      my @metrics=$fn->bounding_box(string => $_);
+      push @m,$metrics[5]-$metrics[4];
+    } else {
+      push @m,$testsize;
+    }
   }
 }
 
@@ -40,18 +44,25 @@ my @i;
 my $fn=Imager::Font->new(file => $o{f},
                          size => $targetsize);
 foreach (@lines) {
-  my @metrics=$fn->bounding_box(string => $_);
-  my $i=Imager->new(xsize => $metrics[2]-$metrics[0],
-                    ysize => $metrics[5]-$metrics[4]);
-  $i->box(color => $col{white}, filled => 1);
-  $i->string(align => 0,
-             x => 0,
-             y => 0,
-             string => $_,
-             color => $col{black},
-             font => $fn,
-             utf8 => 1);
-  push @i,$i;
+  if (/\S/) {
+    my @metrics=$fn->bounding_box(string => $_);
+    my $i=Imager->new(xsize => $metrics[2]-$metrics[0],
+                      ysize => $metrics[5]-$metrics[4]);
+    $i->box(color => $col{white}, filled => 1);
+    $i->string(align => 0,
+               x => 0,
+               y => 0,
+               string => $_,
+               color => $col{black},
+               font => $fn,
+               utf8 => 1);
+    push @i,$i;
+  } else {
+    my $i=Imager->new(xsize => 2,
+                      ysize => $targetsize);
+    $i->box(color => $col{white}, filled => 1);
+    push @i,$i;
+  }
 }
 
 my $out=Imager->new(xsize => max(map {$_->getwidth} @i),
