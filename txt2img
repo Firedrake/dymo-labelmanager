@@ -25,8 +25,12 @@ my @m;
   my $fn=Imager::Font->new(file => $o{f},
                            size => $testsize);
   foreach (@lines) {
+    if (length $_ < 1) {
+        $_ = "|--|";    # Spacer
+    }
     my @metrics=$fn->bounding_box(string => $_);
     push @m,$metrics[5]-$metrics[4];
+    my $tv = $metrics[5]-$metrics[4];
   }
 }
 
@@ -37,13 +41,29 @@ my %col=(
 my $targetsize=$testsize/sum(@m)*($o{h}-((scalar @m)-1)*$o{g});
 
 my @i;
-my $fn=Imager::Font->new(file => $o{f},
+my $fn;
+$fn=Imager::Font->new(file => $o{f},
                          size => $targetsize);
+
+my $blankCount = 0;
+my $lineCount = 0;
 foreach (@lines) {
-  my @metrics=$fn->bounding_box(string => $_);
+  ++$lineCount;
+  my @metrics;
+  @metrics=$fn->bounding_box(string => $_);
+  if (length $_ < 1) {
+      @metrics = $fn->bounding_box(string => "")
+  }
+
   my $i=Imager->new(xsize => $metrics[2]-$metrics[0],
                     ysize => $metrics[5]-$metrics[4]);
+
   $i->box(color => $col{white}, filled => 1);
+  if ($_ eq "|--|") {
+    $_ = " ";
+    ++$blankCount
+
+  }
   $i->string(align => 0,
              x => 0,
              y => 0,
@@ -58,6 +78,12 @@ my $out=Imager->new(xsize => max(map {$_->getwidth} @i),
                     ysize => $o{h});
 $out->box(color => $col{white},filled => 1);
 my $y=0;
+if (($blankCount == 1) && ($lineCount == 2)) {
+  $y = 20;
+}
+if (($blankCount == 2) && ($lineCount == 3)) {
+  $y = 24;
+}
 foreach (@i) {
   $out->paste(left => ($o{a} eq 'c')?($out->getwidth-$_->getwidth)/2:
                      ($o{a} eq 'r')?($out->getwidth-$_->getwidth):0,
