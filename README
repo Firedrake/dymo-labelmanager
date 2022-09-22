@@ -17,7 +17,7 @@ LabelMaker printers, and writing a program to access it at low level
 isn't too hard.
 
 Sebastian Bronner got there first with his dymoprint:
-http://sbronner.com/dymoprint/ which is a great starting point, but
+http://sbronner.com/dymoprint.html which is a great starting point, but
 wasn't quite what I wanted: it can only produce lines of text in a
 single font. In the tradition of Unix programs, I wanted to split the
 functions: one program to convert text to bitmap, and another to send
