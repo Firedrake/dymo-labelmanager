@@ -3,7 +3,7 @@ txt2img and imgprint -- programs to drive a Dymo LabelManager PNP
 by Roger Bell_West (roger at firedrake.org)
 
 Updated versions of this software may be available from
-https://github.com/Firedrake/dymo-labelmanager
+https://codeberg.org/Firedrake/dymo-labelmanager
 
 The Dymo LabelManager PNP is a very fine small tape printer,
 conveniently sized and priced for someone like me who has low-volume
